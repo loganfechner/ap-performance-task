@@ -9,20 +9,23 @@ local function compare(a, b)
 	if a:length() < b:length() then return a end
 end
 
-local function clearTables(...)
-	local args = ...
+local function clearTable(t)
 	local remove = table.remove
-	for i = #args, 1, -1 do
-		if #args[i] > 0 then
-			for j = #args[i], 1, -1 do
-				remove(args[i], j)
-			end
-		end
+	for i = #t, 1, -1 do
+		remove(t, i)
 	end
 end
 
 function MST:initialize(rooms)
-	clearTables(self.points, self.edges, self.tree)
+	if #self.points > 0 then
+		clearTable(self.points)
+	end
+	if #self.edges > 0 then
+		clearTable(self.edges)
+	end
+	if #self.tree > 0 then
+		clearTable(self.tree)
+	end
 
 	-- Get the points
 	local floor = math.floor

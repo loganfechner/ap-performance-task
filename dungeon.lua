@@ -8,19 +8,32 @@ local function pointInRoom(x, y, room)
 end
 
 function Dungeon:initialize(width, height)
+	if self.map then
+		self.map = nil
+	end
+	if self.rooms then
+		self.rooms = nil
+	end
+	if self.drawList then
+		self.drawList = nil
+	end
+
+	self.maxPowerups = 2
 	self.maxRooms = 5
 	self.numRooms = 0
-	self.roomWidth = 13
-	self.roomHeight = 9
-	self.doorWidth = 4
+	self.roomWidth = 16
+	self.roomHeight = 12
+	self.doorWidth = 5
 
-	local width = width or 2 * (self.roomWidth * self.maxRooms)
-	local height = height or 2 * (self.roomHeight * self.maxRooms)
+
+	local width = width or 2 * ((self.roomWidth + 2) * self.maxRooms)
+	local height = height or 2 * ((self.roomHeight + 2) * self.maxRooms)
 	self.map = Map:new(width, height)
 	self.rooms = {}
 	self.drawList = {}
 
 	self:generateRooms()
+	self:generatePowerups()
 end
 
 function Dungeon:generateRooms()
@@ -160,10 +173,25 @@ function Dungeon:placeRoom(x, y, width, height)
 			self.map.data[my][mx] = 1
 		end
 	end)
-	
+
 	self.rooms[#self.rooms+1] = {
 		x = x, y = y, width = width, height = height
 	}
+end
+
+function Dungeon:generatePowerups()
+	local random = math.random
+	local numPowerups = random(0, self.maxPowerups)
+
+	for i = 1, numPowerups do
+		local n = random(1, self.numRooms)
+		local room = self:getRoom(n)
+
+		local x = random(room.x + 1, room.x + room.width - 1)
+		local y = random(room.y + 1, room.y + room.height - 1)
+
+		self.map.data[y][x] = 2
+	end
 end
 
 function Dungeon:getRoom(i)
@@ -181,7 +209,11 @@ end
 function Dungeon:draw()
 	for i = 1, #self.drawList do
 		local tile = self.drawList[i]
-		love.graphics.setColor(255,255,255)
+		if tile.num == 1 then
+			love.graphics.setColor(255,255,255)
+		elseif tile.num == 2 then
+			love.graphics.setColor(0,0,255)
+		end
 		love.graphics.rectangle("line", tile.x*tilesize, tile.y*tilesize, tilesize, tilesize)
 	end
 

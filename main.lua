@@ -2,7 +2,8 @@ math.randomseed(os.time())
 math.random();math.random();math.random();
 
 local Dungeon = require "dungeon"
-local Minimap = require "minimap"
+local Hud = require "hud"
+-- local Minimap = require "minimap"
 local MST = require "mst"
 local Player = require "player"
 local tilesize = require "tilesize"
@@ -21,7 +22,7 @@ function love.load()
 	local room = Dungeon:getRoom(1)
 	Player:initialize(room, World:getWorld())
 
-	Viewport:initialize(Player.x, Player.y, 4.5)
+	Viewport:initialize(Player.x, Player.y, 2.4)
 end
 
 function love.update(dt)
@@ -41,19 +42,28 @@ function love.draw()
 		-- MST:draw()
 		Player:draw()
 
-
+		--[[
 		local x, y = Viewport.camera.x, Viewport.camera.y
 		love.graphics.points(Viewport.camera:position())
 		local scale = Viewport.camera.scale
 		local w, h = love.graphics.getWidth() / scale, love.graphics.getHeight() / scale
-		Minimap:draw(x + w / 6, y + 4 - h / 2, 55, 55, Dungeon:getDrawList())
+		-- Minimap:draw(x + w / 6, y + 4 - h / 2, Dungeon.map.width, Dungeon.map.height, Dungeon.map.data)
+		Minimap:draw(x + w / 30, y - h / 2.2, Dungeon.map.width, Dungeon.map.height, Dungeon.map.data)
+		]]
 	Viewport:detach()
+	Hud:draw()
 end
 
 function love.keypressed(key)
 	if key == "r" then
 		Dungeon:initialize()
 		MST:initialize(Dungeon:getRooms())
+		Dungeon:generateDoors(MST:getTree())
+		Dungeon:generateDrawList()
+		World:initialize(Dungeon:getDrawList())
+
+		local room = Dungeon:getRoom(1)
+		Player:initialize(room, World:getWorld())
 	end
 	if key == "escape" then
 		love.event.quit()
