@@ -1,6 +1,7 @@
 math.randomseed(os.time())
 math.random();math.random();math.random();
 
+local inspect = require "inspect"
 local Dungeon = require "dungeon"
 local Hud = require "hud"
 -- local Minimap = require "minimap"
@@ -10,6 +11,7 @@ local tilesize = require "tilesize"
 local Viewport = require "viewport"
 local World = require "world"
 
+local Enemies = {}
 function love.load()
 	love.graphics.setBackgroundColor(30,30,30)
 
@@ -22,7 +24,8 @@ function love.load()
 	local room = Dungeon:getRoom(1)
 	Player:initialize(room, World:getWorld())
 
-	Viewport:initialize(Player.x, Player.y, 2.4)
+	-- 2.4
+	Viewport:initialize(Player.x, Player.y, 2.5)
 end
 
 function love.update(dt)
@@ -41,15 +44,8 @@ function love.draw()
 		Dungeon:draw()
 		-- MST:draw()
 		Player:draw()
-
-		--[[
-		local x, y = Viewport.camera.x, Viewport.camera.y
-		love.graphics.points(Viewport.camera:position())
-		local scale = Viewport.camera.scale
-		local w, h = love.graphics.getWidth() / scale, love.graphics.getHeight() / scale
-		-- Minimap:draw(x + w / 6, y + 4 - h / 2, Dungeon.map.width, Dungeon.map.height, Dungeon.map.data)
-		Minimap:draw(x + w / 30, y - h / 2.2, Dungeon.map.width, Dungeon.map.height, Dungeon.map.data)
-		]]
+		
+		World:draw()
 	Viewport:detach()
 	Hud:draw()
 end

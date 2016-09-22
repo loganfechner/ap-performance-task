@@ -1,3 +1,4 @@
+local inspect = require "inspect"
 local tilesize = require "tilesize"
 local Bullet = require "bullet"
 local Timer = require "timer"
@@ -16,7 +17,7 @@ function Player:initialize(room, world)
 		list = {},
 		width = 2,
 		height = 2,
-		speed = 165,
+		speed = 200,
 		minAtkPwr = 10,
 		maxAtkPwr = 20
 	}
@@ -38,7 +39,7 @@ function Player:initialize(room, world)
 end
 
 function Player:update(dt, world, drawList)
-	self:move(dt, world)
+	self:move(dt, world, drawList)
 	self:updateBullets(dt, world, drawList)
 	self:updateTimers(dt)
 end
@@ -72,6 +73,7 @@ function Player:move(dt, world, drawList)
 	self:updatePowerupCollision(cols, len, world, drawList)
 end
 
+local remove = table.remove
 function Player:updatePowerupCollision(cols, len, world, drawList)
 	for i = 1, len do
 		local col = cols[i]
@@ -80,8 +82,23 @@ function Player:updatePowerupCollision(cols, len, world, drawList)
 			if name == "ammunition" then
 				self.ammunition = col.other.ammunition(self.ammunition, self.maxAmmunition)
 			end
+			if name == "health" then
+				self.health = col.other.health(self.health, self.maxHealth)
+			end
+			if name == "speed" then
+				self.speed = col.other.speed(self.speed + 20)
+			end
 
-			world:remove(col.item)
+			-- Remove powerup from world
+			world:remove(col.other)
+			local x, y = col.otherRect.x / col.otherRect.w, col.otherRect.y / col.otherRect.h
+			for i = #drawList, 1, -1 do
+				local p = drawList[i]
+				if p.x == x and p.y == y then
+					remove(drawList, i)
+				end
+			end
+
 			break	
 		end
 	end

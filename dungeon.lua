@@ -18,7 +18,9 @@ function Dungeon:initialize(width, height)
 		self.drawList = nil
 	end
 
-	self.maxPowerups = 2
+	self.maxEnemies = 16
+	self.maxPowerups = 6
+
 	self.maxRooms = 5
 	self.numRooms = 0
 	self.roomWidth = 16
@@ -34,12 +36,14 @@ function Dungeon:initialize(width, height)
 
 	self:generateRooms()
 	self:generatePowerups()
+	self:generateEnemies()
 end
 
 function Dungeon:generateRooms()
 	local random = math.random
 	local x, y = math.ceil(self.map.width / 2), math.ceil(self.map.height / 2)
 	self:placeRoom(x, y, self.roomWidth, self.roomHeight)
+	self.numRooms = self.numRooms + 1
 
 	local cx, cy = x, y
 	repeat
@@ -181,9 +185,9 @@ end
 
 function Dungeon:generatePowerups()
 	local random = math.random
-	local numPowerups = random(0, self.maxPowerups)
+	local nPowerups = random(0, self.maxPowerups)
 
-	for i = 1, numPowerups do
+	for i = 1, nPowerups do
 		local n = random(1, self.numRooms)
 		local room = self:getRoom(n)
 
@@ -191,6 +195,23 @@ function Dungeon:generatePowerups()
 		local y = random(room.y + 1, room.y + room.height - 1)
 
 		self.map.data[y][x] = 2
+	end
+end
+
+function Dungeon:generateEnemies()
+	local random = math.random
+	local nEnemies = random(3, self.maxEnemies)
+
+	for i = 1, nEnemies do
+		local n = random(1, self.numRooms)
+		local room = self:getRoom(n)
+
+		local x = random(room.x + 1, room.x + room.width - 1)
+		local y = random(room.y + 1, room.y + room.height - 1)
+
+		if self.map.data[y][x] == 0 then
+			self.map.data[y][x] = 3
+		end
 	end
 end
 
@@ -211,10 +232,12 @@ function Dungeon:draw()
 		local tile = self.drawList[i]
 		if tile.num == 1 then
 			love.graphics.setColor(255,255,255)
-		elseif tile.num == 2 then
-			love.graphics.setColor(0,0,255)
+			love.graphics.rectangle("line", tile.x*tilesize, tile.y*tilesize, tilesize, tilesize)
+
+		elseif tile.num == 3 then
+			love.graphics.setColor(0,255,0)
+			love.graphics.rectangle("fill", tile.x*tilesize, tile.y*tilesize, tilesize, tilesize)
 		end
-		love.graphics.rectangle("line", tile.x*tilesize, tile.y*tilesize, tilesize, tilesize)
 	end
 
 	love.graphics.setColor(255,0,0)

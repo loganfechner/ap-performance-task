@@ -1,4 +1,5 @@
 local bump = require "bump"
+local Enemy = require "enemy"
 local Powerup = require "powerup"
 local tilesize = require "tilesize"
 local World = {}
@@ -37,9 +38,12 @@ function World:addBlocksToWorld(list)
 			end
 
 			local x, y = p.x * tilesize, p.y * tilesize
-			local powerup = Powerup:new(name)
+			local powerup = Powerup:new(name, x, y)
 			powerup.kind = "powerup"
 			self.world:add(powerup, x, y, tilesize, tilesize)
+		elseif p.num == 3 then
+			local enemy = Enemy:new(p.x * tilesize, p.y * tilesize, tilesize / 2, tilesize / 2)
+			self.world:add(enemy, enemy.x, enemy.y, tilesize, tilesize)
 		end
 	end
 end
@@ -61,6 +65,16 @@ end
 
 function World:remove(item)
 	self.world:remove(item)
+end
+
+function World:draw()
+	local items, len = self.world:getItems()
+	for i = 1, len do
+		local item = items[i]
+		if item.kind == "powerup" then
+			item:draw()
+		end
+	end
 end
 
 return World
