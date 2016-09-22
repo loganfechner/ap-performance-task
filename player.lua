@@ -13,10 +13,11 @@ function Player:consts(health, ammo, speed, rof)
 end
 
 function Player:initialize(room, world)
+	self.kind = "player"
 	self.bullet = {
 		list = {},
-		width = 2,
-		height = 2,
+		width = 4,
+		height = 4,
 		speed = 200,
 		minAtkPwr = 10,
 		maxAtkPwr = 20
@@ -38,9 +39,9 @@ function Player:initialize(room, world)
 	world:add(self, self.x, self.y, self.width, self.height)
 end
 
-function Player:update(dt, world, drawList)
+function Player:update(dt, world, drawList, enemies)
 	self:move(dt, world, drawList)
-	self:updateBullets(dt, world, drawList)
+	self:updateBullets(dt, world, drawList, enemies)
 	self:updateTimers(dt)
 end
 
@@ -86,7 +87,10 @@ function Player:updatePowerupCollision(cols, len, world, drawList)
 				self.health = col.other.health(self.health, self.maxHealth)
 			end
 			if name == "speed" then
-				self.speed = col.other.speed(self.speed + 20)
+				self.speed = col.other.speed(self.speed + 35)
+				if self.rof > .1 then
+					self.rof = self.rof - .008
+				end
 			end
 
 			-- Remove powerup from world
@@ -153,7 +157,7 @@ local function aabb(bullet, x, y, w, h)
 end
 
 local remove = table.remove
-function Player:updateBullets(dt, world, drawList)
+function Player:updateBullets(dt, world, drawList, enemies)
 	for i = #self.bullet.list, 1, -1 do
 		local bullet = self.bullet.list[i]
 		bullet:update(dt)
@@ -172,6 +176,16 @@ function Player:updateBullets(dt, world, drawList)
 				end
 			end
 		end
+
+		for j = 1, #enemies do
+			local enemy  = enemies[j]
+			if aabb(bullet, enemy.x, enemy.y, enemy.width, enemy.height) then
+				enemy:hurtEnemy(bullet.atkPwr)
+				remove(self.bullet.list, i)
+				world:remove(bullet)
+				break
+			end
+		end
 	end
 end
 
@@ -179,6 +193,10 @@ function Player:updateTimers(dt)
 	self.shootTimer:update(dt, function()
 		self.canShoot = true
 	end)
+end
+
+function Player:damagePlayer(atkPwr)
+	self.health = self.health - atkPwr
 end
 
 function Player:getPosition()

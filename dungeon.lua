@@ -18,8 +18,8 @@ function Dungeon:initialize(width, height)
 		self.drawList = nil
 	end
 
-	self.maxEnemies = 16
-	self.maxPowerups = 6
+	self.maxEnemies = 10
+	self.maxPowerups = 4
 
 	self.maxRooms = 5
 	self.numRooms = 0
@@ -200,7 +200,7 @@ end
 
 function Dungeon:generateEnemies()
 	local random = math.random
-	local nEnemies = random(3, self.maxEnemies)
+	local nEnemies = random(self.maxEnemies / 2, self.maxEnemies)
 
 	for i = 1, nEnemies do
 		local n = random(1, self.numRooms)
@@ -233,10 +233,6 @@ function Dungeon:draw()
 		if tile.num == 1 then
 			love.graphics.setColor(255,255,255)
 			love.graphics.rectangle("line", tile.x*tilesize, tile.y*tilesize, tilesize, tilesize)
-
-		elseif tile.num == 3 then
-			love.graphics.setColor(0,255,0)
-			love.graphics.rectangle("fill", tile.x*tilesize, tile.y*tilesize, tilesize, tilesize)
 		end
 	end
 

@@ -17,8 +17,25 @@ function World:initialize(list)
 		end
 	end
 
+	self.enemies = {}
+
 	self.world = bump.newWorld()
 	self:addBlocksToWorld(list)
+end
+
+local remove = table.remove
+function World:update(dt, list, x, y, player)
+	for i = #self.enemies, 1, -1 do
+		local enemy = self.enemies[i]
+		enemy:update(dt, self.world, list, player)
+		enemy:fireBullets(x, y, self.world)
+
+		if enemy.health < 0 then
+			remove(self.enemies, i)
+			self.world:remove(enemy)
+			break
+		end
+	end
 end
 
 function World:addBlocksToWorld(list)
@@ -43,6 +60,7 @@ function World:addBlocksToWorld(list)
 			self.world:add(powerup, x, y, tilesize, tilesize)
 		elseif p.num == 3 then
 			local enemy = Enemy:new(p.x * tilesize, p.y * tilesize, tilesize / 2, tilesize / 2)
+			self.enemies[#self.enemies+1] = enemy
 			self.world:add(enemy, enemy.x, enemy.y, tilesize, tilesize)
 		end
 	end
@@ -74,6 +92,10 @@ function World:draw()
 		if item.kind == "powerup" then
 			item:draw()
 		end
+	end
+
+	for i = 1, #self.enemies do
+		self.enemies[i]:draw()
 	end
 end
 

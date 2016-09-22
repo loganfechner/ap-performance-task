@@ -30,7 +30,8 @@ end
 
 function love.update(dt)
 	-- print(collectgarbage("count"))
-	Player:update(dt, World:getWorld(), Dungeon:getDrawList())
+	Player:update(dt, World:getWorld(), Dungeon:getDrawList(), World.enemies)
+	World:update(dt, Dungeon:getDrawList(), Player.x, Player.y, Player)
 
 	-- Camera/Viewport
 	for i = 1, #Dungeon.rooms do
