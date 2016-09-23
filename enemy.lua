@@ -48,7 +48,7 @@ function Enemy:update(dt, world, drawList, player)
 	self:updateTimer(dt)
 	self:updateBullets(dt, world, drawList, player)
 	self:updateFov(player.x, player.y)
-	self:updatePosition(dt)
+	self:updatePosition(dt, world)
 end
 
 function Enemy:updateFov(x, y)
@@ -63,7 +63,7 @@ function Enemy:updateFov(x, y)
 	end
 end
 
-function Enemy:updatePosition(dt)
+function Enemy:updatePosition(dt, world)
 	if self.reachedGoal then
 		self.goalX, self.goalY = self:newPosition()
 
@@ -96,11 +96,13 @@ function Enemy:updatePosition(dt)
 			self.reachedGoal = true
 		end
 	end
+
+	world:update(self, self.x, self.y)
 end
 
 function Enemy:newPosition()
-	local x = math.random(self.room.x + 1, self.room.x + self.room.width - 1) * tilesize
-	local y = math.random(self.room.y + 1, self.room.y + self.room.height - 1) * tilesize
+	local x = math.random(self.room.x + 2, self.room.x + self.room.width - 2) * tilesize
+	local y = math.random(self.room.y + 2, self.room.y + self.room.height - 2) * tilesize
 
 	self.distance = math.sqrt((x-self.x)^2 + (y-self.y)^2)
 	self.dx = x - self.x
