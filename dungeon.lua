@@ -7,7 +7,8 @@ local function pointInRoom(x, y, room)
 		y > room.y and y < room.y + room.height, room
 end
 
-function Dungeon:initialize(width, height)
+function Dungeon:initialize(depth)
+	self.depth = depth
 	if self.map then
 		self.map = nil
 	end
@@ -18,10 +19,11 @@ function Dungeon:initialize(width, height)
 		self.drawList = nil
 	end
 
-	self.maxEnemies = 10
-	self.maxPowerups = 4
+	self.maxEnemies = 8
+	self.maxPowerups = 2
+	self.maxAmmoCrates = 1
 
-	self.maxRooms = 5
+	self.maxRooms = 4
 	self.numRooms = 0
 	self.roomWidth = 16
 	self.roomHeight = 12
@@ -33,6 +35,8 @@ function Dungeon:initialize(width, height)
 	self.map = Map:new(width, height)
 	self.rooms = {}
 	self.drawList = {}
+
+	self.complete = false
 
 	self:generateRooms()
 	self:generatePowerups()
@@ -94,11 +98,23 @@ function Dungeon:generateDrawList()
 	self.map:loop(function(x, y)
 		local num = self.map.data[y][x]
 		if num ~= 0 then
-			self.drawList[#self.drawList+1] = {
+			local list = {
 				x = x,
 				y = y,
 				num = num
 			}
+
+			if num == 3 then
+				for i = 1, #self.rooms do
+					local room = self.rooms[i]
+					if room.x < x and room.x + room.width > x and
+					room.y < y and room.y + room.height > y then
+						list.room = room
+					end
+				end
+			end
+
+			self.drawList[#self.drawList+1] = list
 		end
 	end)
 end
@@ -196,6 +212,17 @@ function Dungeon:generatePowerups()
 
 		self.map.data[y][x] = 2
 	end
+
+	local nAmmoCrates = math.floor(random(self.maxAmmoCrates / 3, self.maxAmmoCrates))
+	for i = 1, nAmmoCrates do
+		local n = random(1, self.numRooms)
+		local room = self:getRoom(n)
+
+		local x = random(room.x + 1, room.x + room.width - 1)
+		local y = random(room.y + 1, room.y + room.height - 1)
+
+		self.map.data[y][x] = 4
+	end
 end
 
 function Dungeon:generateEnemies()
@@ -225,6 +252,16 @@ end
 
 function Dungeon:getDrawList()
 	return self.drawList
+end
+
+function Dungeon:updateDungeonComplete(n)
+	if n <= 0 then
+		self.complete = true
+	end
+end
+
+function Dungeon:increaseDepth()
+	self.depth = self.depth + 1
 end
 
 function Dungeon:draw()

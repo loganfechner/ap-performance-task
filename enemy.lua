@@ -20,6 +20,7 @@ function Enemy:initialize(x, y)
 	self.rof = math.random(.6, 1.8)
 
 	self.canShoot = true
+	self.canSee = false
 	self.shootTimer = Timer:new(self.rof)
 	self.bullet = {
 		list = {},
@@ -29,11 +30,26 @@ function Enemy:initialize(x, y)
 		minAtkPwr = 4,
 		maxAtkPwr = 12
 	}
+
+	self.fovDistance = 250
 end
 
 function Enemy:update(dt, world, drawList, player)
 	self:updateTimer(dt)
 	self:updateBullets(dt, world, drawList, player)
+	self:updateFov(player.x, player.y)
+end
+
+function Enemy:updateFov(x, y)
+	local cx = self.x + self.width / 2
+	local cy = self.y + self.height / 2
+
+	local distance = math.sqrt((cx - x)^2 + (cy - y)^2)
+	if distance <= self.fovDistance then
+		self.canSee = true
+	else
+		self.canSee = false
+	end
 end
 
 function Enemy:updateTimer(dt)
@@ -73,7 +89,7 @@ function Enemy:updateBullets(dt, world, drawList, player)
 end
 
 function Enemy:fireBullets(x, y, world)
-	if self.canShoot then
+	if self.canShoot and self.canSee then
 		local w, h = 4, 4
 		local atkPwr = math.random(self.bullet.minAtkPwr, self.bullet.maxAtkPwr)
 		local bullet = Bullet:new(self.x + self.width / 2, self.y + self.height / 2,
@@ -92,7 +108,10 @@ end
 function Enemy:draw()
 	-- health bar
 	love.graphics.setColor(255,0,0)
-	local w = 35 * (self.health / self.maxHealth)
+	local w = 0
+	for i = 1, self.health do
+		w = w + .5 
+	end
 	love.graphics.rectangle("fill", self.x - 10, self.y - 12, w, 6)
 
 	love.graphics.setColor(255,0,255)

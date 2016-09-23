@@ -5,25 +5,35 @@ local Timer = require "timer"
 local World = require "world"
 local Player = {}
 
-function Player:consts(health, ammo, speed, rof)
+function Player:consts(health, ammo, speed, rof, minAtkPwr, maxAtkPwr)
 	self.maxHealth = health or 100
+	self.health = health
 	self.maxAmmunition = ammo or 50
 	self.speed = speed or 105
 	self.rof = rof or .2
+	self.minAtkPwr = 15 or minAtkPwr
+	self.maxAtkPwr = 30 or maxAtkPwr
 end
 
-function Player:initialize(room, world)
+function Player:initialize(room, world, stats)
 	self.kind = "player"
 	self.bullet = {
 		list = {},
 		width = 4,
 		height = 4,
 		speed = 200,
-		minAtkPwr = 10,
-		maxAtkPwr = 20
+		minAtkPwr = self.minAtkPwr,
+		maxAtkPwr = self.maxAtkPwr
 	}
 
-	self:consts()
+	self:consts(
+		stats.health, 
+		stats.ammo, 
+		stats.speed,
+		stats.rof, 
+		stats.minAtkPwr, 
+		stats.maxAtkPwr
+	)
 
 	self.x = math.floor(room.x + room.width / 2) * tilesize
 	self.y = math.floor(room.y + room.height / 2) * tilesize
@@ -34,7 +44,6 @@ function Player:initialize(room, world)
 	self.canShoot = true
 
 	self.ammunition = self.maxAmmunition
-	self.health = self.maxHealth
 
 	world:add(self, self.x, self.y, self.width, self.height)
 end
@@ -72,6 +81,11 @@ function Player:move(dt, world, drawList)
 	local goalX, goalY = self.x + dx * dt, self.y + dy * dt
 	self.x, self.y, cols, len = world:move(self, goalX, goalY, collisionFilter)
 	self:updatePowerupCollision(cols, len, world, drawList)
+
+	for i = 1, len do
+		local col = cols[i]
+		-- print(inspect(col))
+	end
 end
 
 local remove = table.remove
@@ -111,7 +125,7 @@ end
 function Player:fireBullet(key, world)
 	if self.canShoot and self.ammunition > 0 then
 		local width, height = self.bullet.width, self.bullet.height
-		local atkPwr = math.random(self.bullet.minAtkPwr, self.bullet.maxAtkPwr)
+		local atkPwr = math.random(self.minAtkPwr, self.maxAtkPwr)
 		local speed = self.bullet.speed
 
 		if key == "up" then

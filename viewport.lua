@@ -20,6 +20,10 @@ function Viewport:roomConstraint(a, room)
 	end
 end
 
+function Viewport:lockToPlayer(x, y)
+	self.camera:lookAt(x, y)
+end
+
 function Viewport:attach()
 	self.camera:attach()
 end

@@ -59,9 +59,15 @@ function World:addBlocksToWorld(list)
 			powerup.kind = "powerup"
 			self.world:add(powerup, x, y, tilesize, tilesize)
 		elseif p.num == 3 then
-			local enemy = Enemy:new(p.x * tilesize, p.y * tilesize, tilesize / 2, tilesize / 2)
+			
+			local enemy = Enemy:new(p.x * tilesize, p.y * tilesize, tilesize / 2, tilesize / 2, room)
 			self.enemies[#self.enemies+1] = enemy
 			self.world:add(enemy, enemy.x, enemy.y, tilesize, tilesize)
+		elseif p.num == 4 then
+			local x, y = p.x * tilesize, p.y * tilesize
+			local powerup = Powerup:new("ammunition", x, y)
+			powerup.kind = "powerup"
+			self.world:add(powerup, x, y, tilesize, tilesize)
 		end
 	end
 end
