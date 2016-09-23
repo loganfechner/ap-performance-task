@@ -13,8 +13,8 @@ local Viewport = require "viewport"
 local World = require "world"
 
 local stats = {
-	health = 65,
-	speed = 105,
+	health = 100,
+	speed = 200,
 	ammo = 35,
 	rof = .2,
 	minAtkPwr = 15,
@@ -23,12 +23,7 @@ local stats = {
 
 local depth = 0
 function loadGame()
-	if depth == 0 then
-		Dungeon:initialize(0)
-	else
-		Dungeon:initialize(Dungeon.depth)
-	end
-	Dungeon:increaseDepth()
+	Dungeon:initialize()
 	MST:initialize(Dungeon:getRooms())
 	Dungeon:generateDoors(MST:getTree())	
 	Dungeon:generateDrawList()
@@ -38,8 +33,9 @@ function loadGame()
 	Player:initialize(room, World:getWorld(), stats)
 
 	-- 2.4
-	Viewport:initialize(Player.x, Player.y, 2)
+	Viewport:initialize(Player.x, Player.y, 1)
 
+	depth = depth + 1
 end
 
 function updateStats()
@@ -55,6 +51,11 @@ function love.load()
 	love.graphics.setBackgroundColor(30,30,30)
 
 	loadGame()
+
+	local items, len = World.world:getItems()
+	for i = 1, len do
+		print(inspect(items[i]))
+	end
 end
 
 function love.update(dt)
@@ -72,26 +73,29 @@ function love.update(dt)
 		updateStats(dt)
 		Viewport:lockToPlayer(Player.x, Player.y)
 
-		print(#World.enemies)
-
 		-- print(Player.health, stats.health)
 	end
 end
 
 function love.draw()
 	Viewport:attach()
+		--[[
+		]]
 		Dungeon:draw()
 		MST:draw()
 		Player:draw()
 		
 		World:draw()
-
+		--[[
+		]]
+		
+		-- World:drawListNums(Dungeon:getDrawList())
 	Viewport:detach()
 	Hud:drawPlayerStats()
 	if Player.health > 0 then
-		Hud:drawLevelStatus(Dungeon.complete, Dungeon.depth, 300, 300)
+		Hud:drawLevelStatus(Dungeon.complete, depth, 300, 300)
 	else
-		Hud:drawDeadStatus(Dungeon.depth)
+		Hud:drawDeadStatus(depth)
 	end
 end
 

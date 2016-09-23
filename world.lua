@@ -1,4 +1,5 @@
 local bump = require "bump"
+local Dungeon = require "dungeon"
 local Enemy = require "enemy"
 local Powerup = require "powerup"
 local tilesize = require "tilesize"
@@ -31,6 +32,7 @@ function World:update(dt, list, x, y, player)
 		enemy:fireBullets(x, y, self.world)
 
 		if enemy.health < 0 then
+			enemy:removeBullets(self.world)
 			remove(self.enemies, i)
 			self.world:remove(enemy)
 			break
@@ -57,17 +59,17 @@ function World:addBlocksToWorld(list)
 			local x, y = p.x * tilesize, p.y * tilesize
 			local powerup = Powerup:new(name, x, y)
 			powerup.kind = "powerup"
-			self.world:add(powerup, x, y, tilesize, tilesize)
+			self.world:add(powerup, x, y, powerup.width, powerup.height)
 		elseif p.num == 3 then
-			
-			local enemy = Enemy:new(p.x * tilesize, p.y * tilesize, tilesize / 2, tilesize / 2, room)
+			local room = Dungeon:getRoomFromPosition(p.x, p.y)
+			local enemy = Enemy:new(p.x * tilesize, p.y * tilesize, room)
 			self.enemies[#self.enemies+1] = enemy
 			self.world:add(enemy, enemy.x, enemy.y, tilesize, tilesize)
 		elseif p.num == 4 then
 			local x, y = p.x * tilesize, p.y * tilesize
 			local powerup = Powerup:new("ammunition", x, y)
 			powerup.kind = "powerup"
-			self.world:add(powerup, x, y, tilesize, tilesize)
+			self.world:add(powerup, x, y, 32, 32)
 		end
 	end
 end
@@ -102,6 +104,13 @@ function World:draw()
 
 	for i = 1, #self.enemies do
 		self.enemies[i]:draw()
+	end
+end
+
+function World:drawListNums(list)
+	for i = 1, #list do
+		local p = list[i]
+		love.graphics.print(p.num, p.x*tilesize, p.y*tilesize)
 	end
 end
 

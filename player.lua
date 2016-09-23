@@ -1,5 +1,6 @@
 local inspect = require "inspect"
 local tilesize = require "tilesize"
+local Animation = require "animation"
 local Bullet = require "bullet"
 local Timer = require "timer"
 local World = require "world"
@@ -15,13 +16,14 @@ function Player:consts(health, ammo, speed, rof, minAtkPwr, maxAtkPwr)
 	self.maxAtkPwr = 30 or maxAtkPwr
 end
 
+local image = love.graphics.newImage("tileset.png")
 function Player:initialize(room, world, stats)
 	self.kind = "player"
 	self.bullet = {
 		list = {},
 		width = 4,
 		height = 4,
-		speed = 200,
+		speed = 275,
 		minAtkPwr = self.minAtkPwr,
 		maxAtkPwr = self.maxAtkPwr
 	}
@@ -46,12 +48,49 @@ function Player:initialize(room, world, stats)
 	self.ammunition = self.maxAmmunition
 
 	world:add(self, self.x, self.y, self.width, self.height)
+
+	self.animations = {
+		{
+			name = 'RunRight',
+			animation = Animation:new(image, 1, 4, .2, self.x, self.y)
+		},
+		{
+			name = 'RunLeft',
+			animation = Animation:new(image, 5, 8, .2, self.x, self.y)
+		},
+		{
+			name = 'RunDown',
+			animation = Animation:new(image, 9, 12, .2, self.x, self.y)
+		},
+		{
+			name = 'RunUp',
+			animation = Animation:new(image, 13, 16, .2, self.x, self.y)
+		},
+		{
+			name = 'IdleRight',
+			animation = Animation:new(image, 17, 18, .4, self.x, self.y)
+		},
+		{
+			name = 'IdleLeft',
+			animation = Animation:new(image, 19, 20, .4, self.x, self.y)
+		}
+	}
+	self.currentAnimation = "IdleRight"
 end
 
 function Player:update(dt, world, drawList, enemies)
 	self:move(dt, world, drawList)
 	self:updateBullets(dt, world, drawList, enemies)
 	self:updateTimers(dt)
+	self:updateAnimations(dt)
+end
+
+function Player:updateAnimations(dt)
+	for _, v in ipairs(self.animations) do
+		if v.name == self.currentAnimation then
+			v.animation:update(dt)
+		end
+	end
 end
 
 local function collisionFilter(item, other)
@@ -65,18 +104,32 @@ end
 function Player:move(dt, world, drawList)
 	local dx, dy = 0, 0
 
-	if love.keyboard.isDown("d") then
-		dx = self.speed
-	end
-	if love.keyboard.isDown("a") then
-		dx = -self.speed
-	end
 	if love.keyboard.isDown("w") then
 		dy = -self.speed
+		self.currentAnimation = "RunUp"
 	end
 	if love.keyboard.isDown("s") then
 		dy = self.speed
+		self.currentAnimation = "RunDown"
 	end
+	if love.keyboard.isDown("d") then
+		dx = self.speed
+		self.currentAnimation = "RunRight"
+	end
+	if love.keyboard.isDown("a") then
+		dx = -self.speed
+		self.currentAnimation = "RunLeft"
+	end
+
+	if not love.keyboard.isDown('d') and not love.keyboard.isDown('a') and
+	not love.keyboard.isDown('s') and not love.keyboard.isDown('w') then
+		if self.currentAnimation == 'RunDown' or self.currentAnimation == 'RunLeft' then
+			self.currentAnimation = 'IdleLeft'
+		end
+		if self.currentAnimation == 'RunUp' or self.currentAnimation == 'RunRight' then
+			self.currentAnimation = 'IdleRight'
+		end
+end
 
 	local goalX, goalY = self.x + dx * dt, self.y + dy * dt
 	self.x, self.y, cols, len = world:move(self, goalX, goalY, collisionFilter)
@@ -218,8 +271,12 @@ function Player:getPosition()
 end
 
 function Player:draw()
-	love.graphics.setColor(255,255,255)
-	love.graphics.rectangle("fill", self.x, self.y, self.width, self.height)
+	love.graphics.setColor(255, 255, 255)
+	for _, v in ipairs(self.animations) do
+		if v.name == self.currentAnimation then
+			v.animation:draw(self.x, self.y)
+		end
+	end	
 
 	if #self.bullet.list > 0 then
 		for i = 1, #self.bullet.list do

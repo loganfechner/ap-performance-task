@@ -25,13 +25,13 @@ function Powerup:initialize(name, x, y)
 	self.sprite:setFilter("nearest", "nearest")
 
 	self.x, self.y = x, y
-	self.width = self.sprite:getWidth()
-	self.height = self.sprite:getHeight()
+	self.width = self.sprite:getWidth() * 2
+	self.height = self.sprite:getHeight() * 2
 end
 
 function Powerup:draw()
 	love.graphics.setColor(255,255,255)
-	love.graphics.draw(self.sprite, self.x, self.y)
+	love.graphics.draw(self.sprite, self.x, self.y, 0, 2, 2)
 end
 
 return Powerup

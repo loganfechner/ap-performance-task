@@ -9,7 +9,7 @@ local function aabb(bullet, x, y, w, h)
 			bullet.y1 + bullet.height > y and bullet.y1 < y + h
 end
 
-function Enemy:initialize(x, y)
+function Enemy:initialize(x, y, room)
 	self.x = x
 	self.y = y
 	self.width = tilesize / 1
@@ -19,6 +19,16 @@ function Enemy:initialize(x, y)
 	self.health = self.maxHealth
 	self.rof = math.random(.6, 1.8)
 
+	self.room = room
+	self.reachedGoal = true
+	self.goalX = 0
+	self.goalY = 0
+	self.distance = 0
+	self.dx = 0
+	self.dy = 0
+	self.directionX, self.directionY = 0, 0
+	self.speed = 100
+
 	self.canShoot = true
 	self.canSee = false
 	self.shootTimer = Timer:new(self.rof)
@@ -26,18 +36,19 @@ function Enemy:initialize(x, y)
 		list = {},
 		width = 2,
 		height = 2,
-		speed = 160,
+		speed = 300,
 		minAtkPwr = 4,
 		maxAtkPwr = 12
 	}
 
-	self.fovDistance = 250
+	self.fovDistance = 325
 end
 
 function Enemy:update(dt, world, drawList, player)
 	self:updateTimer(dt)
 	self:updateBullets(dt, world, drawList, player)
 	self:updateFov(player.x, player.y)
+	self:updatePosition(dt)
 end
 
 function Enemy:updateFov(x, y)
@@ -50,6 +61,52 @@ function Enemy:updateFov(x, y)
 	else
 		self.canSee = false
 	end
+end
+
+function Enemy:updatePosition(dt)
+	if self.reachedGoal then
+		self.goalX, self.goalY = self:newPosition()
+
+		self.directionX = self.dx / self.distance
+		self.directionY = self.dy / self.distance
+
+		self.reachedGoal = false
+	end
+
+	self.x = self.x + self.directionX * self.speed * dt
+	self.y = self.y + self.directionY * self.speed * dt
+
+	if self.directionX < 0 and self.directionY < 0 then
+		if self.x < self.goalX and self.y < self.goalY then
+			self.reachedGoal = true
+		end
+	end
+	if self.directionX < 0 and self.directionY > 0 then
+		if self.x < self.goalX and self.y > self.goalY then
+			self.reachedGoal = true
+		end
+	end
+	if self.directionX > 0 and self.directionY < 0 then
+		if self.x > self.goalX and self.y < self.goalY then
+			self.reachedGoal = true
+		end
+	end
+	if self.directionX > 0 and self.directionY > 0 then
+		if self.x > self.goalX and self.y > self.goalY then
+			self.reachedGoal = true
+		end
+	end
+end
+
+function Enemy:newPosition()
+	local x = math.random(self.room.x + 1, self.room.x + self.room.width - 1) * tilesize
+	local y = math.random(self.room.y + 1, self.room.y + self.room.height - 1) * tilesize
+
+	self.distance = math.sqrt((x-self.x)^2 + (y-self.y)^2)
+	self.dx = x - self.x
+	self.dy = y - self.y
+
+	return x, y
 end
 
 function Enemy:updateTimer(dt)
@@ -85,6 +142,18 @@ function Enemy:updateBullets(dt, world, drawList, player)
 			world:remove(bullet)
 			break
 		end
+	end
+end
+
+function Enemy:removeBullets(world)
+	if #self.bullet.list > 0 then
+		for i = #self.bullet.list, 1, -1 do
+			local bullet = self.bullet.list[i]
+			remove(self.bullet.list, i)
+			world:remove(bullet)
+			break
+		end
+		self:removeBullets(world)
 	end
 end
 

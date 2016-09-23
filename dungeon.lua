@@ -7,8 +7,7 @@ local function pointInRoom(x, y, room)
 		y > room.y and y < room.y + room.height, room
 end
 
-function Dungeon:initialize(depth)
-	self.depth = depth
+function Dungeon:initialize()
 	if self.map then
 		self.map = nil
 	end
@@ -254,14 +253,19 @@ function Dungeon:getDrawList()
 	return self.drawList
 end
 
+function Dungeon:getRoomFromPosition(x, y)
+	for i = 1, #self.rooms do
+		local room = self.rooms[i]
+		if x > room.x and x < room.x + room.width and y > room.y and y < room.y + room.height then
+			return room
+		end
+	end
+end
+
 function Dungeon:updateDungeonComplete(n)
 	if n <= 0 then
 		self.complete = true
 	end
-end
-
-function Dungeon:increaseDepth()
-	self.depth = self.depth + 1
 end
 
 function Dungeon:draw()
