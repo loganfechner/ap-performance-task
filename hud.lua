@@ -1,11 +1,12 @@
 local Player = require "player"
 local Hud = {}
-ammofont = love.graphics.newFont("newfont.ttf", 23)
-displayfont = love.graphics.newFont("newfont.ttf", 12)
+
+-- ammofont = love.graphics.newFont("newfont.ttf", 23)
+-- displayfont = love.graphics.newFont("newfont.ttf", 12)
 
 function Hud:drawPlayerStats()
 	love.graphics.setColor(255,0,0)
-	love.graphics.setFont(ammofont)
+	-- love.graphics.setFont(ammofont)
 	love.graphics.print(Player.ammunition, love.graphics.getWidth() - 50,  love.graphics.getHeight() - 20)
 
 	love.graphics.setColor(35,255,35)
@@ -24,7 +25,7 @@ function Hud:drawLevelStatus(status, depth, x, y)
 		local depth = tostring(depth)
 
 		love.graphics.setColor(0,0,255)
-		love.graphics.setFont(displayfont)
+		-- love.graphics.setFont(displayfont)
 		love.graphics.print("LEVEL " .. depth .. " complete", x, y)
 		love.graphics.print("Press 'r' continue to the next level", x - 20, y + 20)
 	end
@@ -35,7 +36,7 @@ function Hud:drawDeadStatus(depth)
 	local len = string.len(s)
 
 	love.graphics.setColor(255,35,35)
-	love.graphics.setFont(displayfont)
+	-- love.graphics.setFont(displayfont)
 	love.graphics.print(s, (love.graphics.getWidth()/2)-(len*5/2), 250)
 end
 

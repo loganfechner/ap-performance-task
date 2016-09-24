@@ -20,9 +20,9 @@ function Dungeon:initialize()
 
 	self.maxEnemies = 8
 	self.maxPowerups = 2
-	self.maxAmmoCrates = 1
+	self.maxAmmoCrates = 2
 
-	self.maxRooms = 4
+	self.maxRooms = 6
 	self.numRooms = 0
 	self.roomWidth = 16
 	self.roomHeight = 12
@@ -212,7 +212,7 @@ function Dungeon:generatePowerups()
 		self.map.data[y][x] = 2
 	end
 
-	local nAmmoCrates = math.floor(random(self.maxAmmoCrates / 3, self.maxAmmoCrates))
+	local nAmmoCrates = math.floor(random(1, self.maxAmmoCrates))
 	for i = 1, nAmmoCrates do
 		local n = random(1, self.numRooms)
 		local room = self:getRoom(n)
@@ -279,6 +279,15 @@ function Dungeon:draw()
 
 	love.graphics.setColor(255,0,0)
 	love.graphics.rectangle("line", tilesize, tilesize, self.map.width * tilesize, self.map.height * tilesize)
+end
+
+function Dungeon:drawRoomNums()
+	for i = 1, #self.rooms do
+		local room = self.rooms[i]
+		local x, y = room.x + 1, room.y + 1
+		love.graphics.setColor(255,255,255)
+		love.graphics.print(i, x * tilesize, y * tilesize)
+	end
 end
 
 return Dungeon

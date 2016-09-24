@@ -8,15 +8,16 @@ local Dungeon = require "dungeon"
 local Hud = require "hud"
 local MST = require "mst"
 local Player = require "player"
+local SoundFX = require "soundfx"
 local tilesize = require "tilesize"
 local Viewport = require "viewport"
 local World = require "world"
 
 local stats = {
-	health = 100,
-	speed = 200,
+	health = 65,
+	speed = 220,
 	ammo = 35,
-	rof = .2,
+	rof = .35,
 	minAtkPwr = 15,
 	maxAtkPwr = 30
 }
@@ -25,7 +26,8 @@ local depth = 0
 function loadGame()
 	Dungeon:initialize()
 	MST:initialize(Dungeon:getRooms())
-	Dungeon:generateDoors(MST:getTree())	
+	print(#MST.tree)
+	Dungeon:generateDoors(MST:getTree())
 	Dungeon:generateDrawList()
 	World:initialize(Dungeon:getDrawList())
 
@@ -50,6 +52,7 @@ end
 function love.load()
 	love.graphics.setBackgroundColor(30,30,30)
 
+	SoundFX:initialize()
 	loadGame()
 
 	local items, len = World.world:getItems()
@@ -59,7 +62,7 @@ function love.load()
 end
 
 function love.update(dt)
-	if Player.health > 0 then
+	if not Player:isDead() then
 		-- print(collectgarbage("count"))
 		Player:update(dt, World:getWorld(), Dungeon:getDrawList(), World.enemies)
 		World:update(dt, Dungeon:getDrawList(), Player.x, Player.y, Player)
@@ -75,6 +78,8 @@ function love.update(dt)
 
 		-- print(Player.health, stats.health)
 	end
+
+	love.window.setTitle(#World.enemies)
 end
 
 function love.draw()
@@ -82,6 +87,7 @@ function love.draw()
 		--[[
 		]]
 		Dungeon:draw()
+		Dungeon:drawRoomNums()
 		MST:draw()
 		Player:draw()
 		
@@ -92,7 +98,8 @@ function love.draw()
 		-- World:drawListNums(Dungeon:getDrawList())
 	Viewport:detach()
 	Hud:drawPlayerStats()
-	if Player.health > 0 then
+
+	if not Player:isDead() then
 		Hud:drawLevelStatus(Dungeon.complete, depth, 300, 300)
 	else
 		Hud:drawDeadStatus(depth)
@@ -100,12 +107,14 @@ function love.draw()
 end
 
 function love.keypressed(key)
-	if key == "r" and Dungeon.complete then
+	if key == "r" then
 		loadGame()	
 	end
 	if key == "escape" then
 		love.event.quit()
 	end
 
-	Player:fireBullet(key, World:getWorld())
+	if not Player:isDead() then
+		Player:fireBullet(key, World:getWorld())
+	end
 end

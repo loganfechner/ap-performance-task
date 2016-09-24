@@ -2,6 +2,7 @@ local bump = require "bump"
 local Dungeon = require "dungeon"
 local Enemy = require "enemy"
 local Powerup = require "powerup"
+local SoundFX = require "soundfx"
 local tilesize = require "tilesize"
 local World = {}
 
@@ -35,6 +36,7 @@ function World:update(dt, list, x, y, player)
 			enemy:removeBullets(self.world)
 			remove(self.enemies, i)
 			self.world:remove(enemy)
+			SoundFX:play("killed", .5)
 			break
 		end
 	end

@@ -86,19 +86,19 @@ function MST:getTree()
 end
 
 function MST:draw()
-	-- for i = 1, #self.tree do
-	-- 	local p1 = self.tree[i].p1
-	-- 	local p2 = self.tree[i].p2
-	-- 	local x1 = p1.x * tilesize
-	-- 	local x2 = p2.x * tilesize
-	-- 	local y1 = p1.y * tilesize
-	-- 	local y2 = p2.y * tilesize
+	for i = 1, #self.tree do
+		local p1 = self.tree[i].p1
+		local p2 = self.tree[i].p2
+		local x1 = p1.x * tilesize
+		local x2 = p2.x * tilesize
+		local y1 = p1.y * tilesize
+		local y2 = p2.y * tilesize
 
-	-- 	love.graphics.setColor(0,255,0)
-	-- 	love.graphics.line(x1 - 1, y1 - 1, x2 - 1, y2 - 1)
-	-- 	love.graphics.line(x1, y1, x2, y2)
-	-- 	love.graphics.line(x1 + 1, y1 + 1, x2 + 1, y2 + 1)
-	-- end
+		love.graphics.setColor(0,255,0)
+		love.graphics.line(x1 - 1, y1 - 1, x2 - 1, y2 - 1)
+		love.graphics.line(x1, y1, x2, y2)
+		love.graphics.line(x1 + 1, y1 + 1, x2 + 1, y2 + 1)
+	end
 end
 
 return MST

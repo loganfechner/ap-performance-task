@@ -18,7 +18,7 @@ function Bullet:initialize(x1, y1, x2, y2, w, h, atkPwr, spd)
 	self.kind = "bullet"
 end
 
-function Bullet:update(dt)
+function Bullet:update(dt, x2, y2)
 	self.directionX = self.dx / self.distance
 	self.directionY = self.dy / self.distance
 

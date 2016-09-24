@@ -1,6 +1,7 @@
 local class = require "middleclass"
 local tilesize = require "tilesize"
 local Bullet = require "bullet"
+local SoundFX = require "soundfx"
 local Timer = require "timer"
 local Enemy = class("Enemy")
 
@@ -36,7 +37,7 @@ function Enemy:initialize(x, y, room)
 		list = {},
 		width = 2,
 		height = 2,
-		speed = 300,
+		speed = 450,
 		minAtkPwr = 4,
 		maxAtkPwr = 12
 	}
@@ -63,6 +64,14 @@ function Enemy:updateFov(x, y)
 	end
 end
 
+local function collisionFilter(item, other)
+	if other.kind == "bullet" or other.kind == "powerup" then
+		return "cross"
+	else
+		return "slide"
+	end
+end
+
 function Enemy:updatePosition(dt, world)
 	if self.reachedGoal then
 		self.goalX, self.goalY = self:newPosition()
@@ -73,28 +82,20 @@ function Enemy:updatePosition(dt, world)
 		self.reachedGoal = false
 	end
 
-	self.x = self.x + self.directionX * self.speed * dt
-	self.y = self.y + self.directionY * self.speed * dt
+	local goalX = self.x + self.directionX * self.speed * dt
+	local goalY = self.y + self.directionY * self.speed * dt
 
-	if self.directionX < 0 and self.directionY < 0 then
-		if self.x < self.goalX and self.y < self.goalY then
-			self.reachedGoal = true
+	self.x, self.y, cols, len = world:move(self, goalX, goalY, collisionFilter)
+
+	local temp = 0
+	for i = 1, len do
+		if cols[i].other.kind == "solid" then
+			temp = temp + 1
 		end
 	end
-	if self.directionX < 0 and self.directionY > 0 then
-		if self.x < self.goalX and self.y > self.goalY then
-			self.reachedGoal = true
-		end
-	end
-	if self.directionX > 0 and self.directionY < 0 then
-		if self.x > self.goalX and self.y < self.goalY then
-			self.reachedGoal = true
-		end
-	end
-	if self.directionX > 0 and self.directionY > 0 then
-		if self.x > self.goalX and self.y > self.goalY then
-			self.reachedGoal = true
-		end
+
+	if temp > 0 then
+		self.reachedGoal = true
 	end
 
 	world:update(self, self.x, self.y)
@@ -174,6 +175,7 @@ end
 
 function Enemy:hurtEnemy(atkPwr)
 	self.health = self.health - atkPwr
+	SoundFX:play("hit")
 end
 
 function Enemy:draw()
