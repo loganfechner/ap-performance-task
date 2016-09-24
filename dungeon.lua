@@ -1,6 +1,14 @@
 local Map = require "map"
+local Quads = require "quads"
 local tilesize = require "tilesize"
 local Dungeon = {}
+
+
+local backgroundSprite = love.graphics.newImage("img/background.png")
+backgroundSprite:setFilter("nearest", "nearest")
+local floorQuad = Quads:loadQuad(backgroundSprite, 15)
+local wallQuad = Quads:loadQuad(backgroundSprite, 5)
+local exitQuad = Quads:loadQuad(backgroundSprite, 9)
 
 local function pointInRoom(x, y, room)
 	return x > room.x and x < room.x + room.width and 
@@ -18,28 +26,32 @@ function Dungeon:initialize()
 		self.drawList = nil
 	end
 
-	self.maxEnemies = 8
+	self.maxEnemies = 9
 	self.maxPowerups = 2
 	self.maxAmmoCrates = 2
 
 	self.maxRooms = 6
 	self.numRooms = 0
-	self.roomWidth = 16
-	self.roomHeight = 12
-	self.doorWidth = 5
+	self.roomWidth = 14
+	self.roomHeight = 8
+	self.doorWidth = 1
 
 
 	local width = width or 2 * ((self.roomWidth + 2) * self.maxRooms)
 	local height = height or 2 * ((self.roomHeight + 2) * self.maxRooms)
 	self.map = Map:new(width, height)
 	self.rooms = {}
-	self.drawList = {}
+	self.drawList = {
+		foreground = {},
+		background = {}
+	}
 
 	self.complete = false
 
 	self:generateRooms()
 	self:generatePowerups()
 	self:generateEnemies()
+	self:generateExit()
 end
 
 function Dungeon:generateRooms()
@@ -54,7 +66,7 @@ function Dungeon:generateRooms()
 		local room = self.rooms[#self.rooms]
 		-- North
 		if dir == 0 then
-			if self.map.data[room.y-room.height-1][room.x] == 0 then
+			if self.map.data[room.y-room.height-1][room.x] <= 0 then
 				self:placeRoom(room.x, room.y-room.height-1, room.width,
 					room.height)
 				self.numRooms = self.numRooms + 1
@@ -63,7 +75,7 @@ function Dungeon:generateRooms()
 		end
 		-- South
 		if dir == 2 then
-			if self.map.data[room.y+room.height+1][room.x] == 0 then
+			if self.map.data[room.y+room.height+1][room.x] <= 0 then
 				self:placeRoom(room.x, room.y+room.height+1, room.width,
 					room.height)
 				self.numRooms = self.numRooms + 1
@@ -72,7 +84,7 @@ function Dungeon:generateRooms()
 		end
 		-- East
 		if dir == 1 then
-			if self.map.data[room.y][room.x+room.width+1] == 0 then
+			if self.map.data[room.y][room.x+room.width+1] <= 0 then
 				self:placeRoom(room.x+room.width+1, room.y, room.width,
 					room.height)
 				self.numRooms = self.numRooms + 1
@@ -81,7 +93,7 @@ function Dungeon:generateRooms()
 		end
 		-- West
 		if dir == 3 then
-			if self.map.data[room.y][room.x-room.width-1] == 0 then
+			if self.map.data[room.y][room.x-room.width-1] <= 0 then
 				self:placeRoom(room.x-room.width-1, room.y, room.width,
 					room.height)
 				self.numRooms = self.numRooms + 1
@@ -96,7 +108,7 @@ end
 function Dungeon:generateDrawList()
 	self.map:loop(function(x, y)
 		local num = self.map.data[y][x]
-		if num ~= 0 then
+		if num > 1 then
 			local list = {
 				x = x,
 				y = y,
@@ -113,9 +125,30 @@ function Dungeon:generateDrawList()
 				end
 			end
 
-			self.drawList[#self.drawList+1] = list
+			self.drawList.background[#self.drawList.background+1] = {
+				x = x,
+				y = y,
+				num = -1
+			}
+			self.drawList.foreground[#self.drawList.foreground+1] = list
+		end
+		if num == 1 or num == -1 or num == 6 then
+			local list = {
+				x = x,
+				y = y,
+				num = num
+			}
+
+			self.drawList.background[#self.drawList.background+1] = list
 		end
 	end)
+end
+
+function Dungeon:generateExit()
+	local lastRoom = self:getRoom(#self.rooms)
+	local x = math.random(lastRoom.x + 2, lastRoom.x + lastRoom.width - 2)
+	local y = math.random(lastRoom.y + 2, lastRoom.y + lastRoom.height - 2)
+	self.map.data[y][x] = 6
 end
 
 function Dungeon:generateDoors(tree)
@@ -155,29 +188,29 @@ function Dungeon:generateDoors(tree)
 		-- North of room 1
 		if r1.y < r2.y and r1.x == r2.x then
 			for x = r2.x + doorWidth, r2.x + r2.width - doorWidth do
-				self.map.data[r2.y][x] = 0
-				self.map.data[r2.y-1][x] = 0
+				self.map.data[r2.y][x] = -1
+				self.map.data[r2.y-1][x] = -1
 			end
 		end
 		-- South of room 1
 		if r1.y > r2.y and r1.x == r2.x then
 			for x = r2.x + doorWidth, r2.x + r2.width - doorWidth do
-				self.map.data[r1.y][x] = 0
-				self.map.data[r1.y-1][x] = 0
+				self.map.data[r1.y][x] = -1
+				self.map.data[r1.y-1][x] = -1
 			end
 		end
 		-- East of room 1
 		if r1.x < r2.x and r1.y == r2.y then
 			for y = r2.y + doorWidth, r2.y + r2.height - doorWidth do
-				self.map.data[y][r2.x] = 0
-				self.map.data[y][r2.x-1] = 0
+				self.map.data[y][r2.x] = -1
+				self.map.data[y][r2.x-1] = -1
 			end
 		end
 		-- West of room 1
 		if r1.x > r2.x and r1.y == r2.y then
 			for y = r2.y + doorWidth, r2.y + r2.height - doorWidth do
-				self.map.data[y][r1.x] = 0
-				self.map.data[y][r1.x-1] = 0
+				self.map.data[y][r1.x] = -1
+				self.map.data[y][r1.x-1] = -1
 			end
 		end
 	end
@@ -190,6 +223,8 @@ function Dungeon:placeRoom(x, y, width, height)
 		((mx >= x and mx <= x + width) and
 		(my == y or my == y + height)) then
 			self.map.data[my][mx] = 1
+		elseif ((my > y and mx > x and mx < x + width and my < y + height)) then
+		    self.map.data[my][mx] = -1
 		end
 	end)
 
@@ -235,7 +270,7 @@ function Dungeon:generateEnemies()
 		local x = random(room.x + 1, room.x + room.width - 1)
 		local y = random(room.y + 1, room.y + room.height - 1)
 
-		if self.map.data[y][x] == 0 then
+		if self.map.data[y][x] == -1 or self.map.data[y][x] == 0 then
 			self.map.data[y][x] = 3
 		end
 	end
@@ -249,8 +284,12 @@ function Dungeon:getRooms()
 	return self.rooms
 end
 
-function Dungeon:getDrawList()
-	return self.drawList
+function Dungeon:getDrawList(s)
+	if s == "background" then
+		return self.drawList.background
+	elseif s == "foreground" then
+		return self.drawList.foreground
+	end
 end
 
 function Dungeon:getRoomFromPosition(x, y)
@@ -268,17 +307,31 @@ function Dungeon:updateDungeonComplete(n)
 	end
 end
 
-function Dungeon:draw()
-	for i = 1, #self.drawList do
-		local tile = self.drawList[i]
+function Dungeon:drawFloor()
+	for i = 1, #self.drawList.background do
+		local tile = self.drawList.background[i]
+		if tile.num == -1 then
+			love.graphics.setColor(255,255,255)
+			love.graphics.draw(backgroundSprite, floorQuad, tile.x*tilesize, tile.y*tilesize)
+		end
+		if tile.num == 6 then
+			love.graphics.setColor(255,255,255)
+			love.graphics.draw(backgroundSprite, exitQuad, tile.x*tilesize, tile.y*tilesize)
+		end
+	end
+end
+
+function Dungeon:drawWalls()
+	for i = 1, #self.drawList.background do
+		local tile = self.drawList.background[i]
 		if tile.num == 1 then
 			love.graphics.setColor(255,255,255)
-			love.graphics.rectangle("line", tile.x*tilesize, tile.y*tilesize, tilesize, tilesize)
+			love.graphics.draw(backgroundSprite, wallQuad, tile.x*tilesize, tile.y*tilesize)
 		end
 	end
 
-	love.graphics.setColor(255,0,0)
-	love.graphics.rectangle("line", tilesize, tilesize, self.map.width * tilesize, self.map.height * tilesize)
+	-- love.graphics.setColor(255,0,0)
+	-- love.graphics.rectangle("line", tilesize, tilesize, self.map.width * tilesize, self.map.height * tilesize)
 end
 
 function Dungeon:drawRoomNums()

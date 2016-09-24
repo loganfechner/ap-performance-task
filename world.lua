@@ -11,7 +11,7 @@ function World.aabb(a, x, y, w, h)
 		a.y < y + h and a.y + a.height > y
 end
 
-function World:initialize(list)
+function World:initialize(foreground, background)
 	if self.world then
 		local items, len = self.world:getItems()
 		for i = 1, len do
@@ -22,7 +22,7 @@ function World:initialize(list)
 	self.enemies = {}
 
 	self.world = bump.newWorld()
-	self:addBlocksToWorld(list)
+	self:addBlocksToWorld(foreground, background)
 end
 
 local remove = table.remove
@@ -42,19 +42,24 @@ function World:update(dt, list, x, y, player)
 	end
 end
 
-function World:addBlocksToWorld(list)
-	for i = 1, #list do
-		local p = list[i]
+function World:addBlocksToWorld(foreground, background)
+	for i = 1, #background do
+		local p = background[i]
 		if p.num == 1 then
 			self:add(p.x * tilesize, p.y * tilesize, tilesize, tilesize)
-		elseif p.num == 2 then
-			local n = math.random(0, 2)
+		end
+		if p.num == 6 then
+			self:add(p.x * tilesize, p.y * tilesize, tilesize, tilesize, "exit")
+		end
+	end
+	for i = 1, #foreground do
+		local p = foreground[i]
+		if p.num == 2 then
+			local n = math.random(0, 1)
 			local name = ""
 			if n == 0 then
 				name = "health"
 			elseif n == 1 then
-				name = "ammunition"
-			elseif n == 2 then
 				name = "speed"
 			end
 
@@ -93,6 +98,20 @@ end
 
 function World:remove(item)
 	self.world:remove(item)
+end
+
+function World:drawShadows()
+	local items, len = self.world:getItems()
+	for i = 1, len do
+		local item = items[i]
+		if item.kind == "player" or item.kind == "enemy" then
+			local x = (item.x or item.x1) + item.width / 2
+			local y = (item.y or item.y1) + item.height
+			local rw, rh = item.width, item.height / 2
+			love.graphics.setColor(0, 0, 0, 100)
+			love.graphics.ellipse("fill", x, y, rw, rh)
+		end
+	end
 end
 
 function World:draw()

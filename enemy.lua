@@ -18,7 +18,7 @@ function Enemy:initialize(x, y, room)
 	self.kind = "enemy"
 	self.maxHealth = 75
 	self.health = self.maxHealth
-	self.rof = math.random(.6, 1.8)
+	self.rof = math.random(.5, 1.8)
 
 	self.room = room
 	self.reachedGoal = true
@@ -28,15 +28,15 @@ function Enemy:initialize(x, y, room)
 	self.dx = 0
 	self.dy = 0
 	self.directionX, self.directionY = 0, 0
-	self.speed = 100
+	self.speed = math.random(100, 140)
 
 	self.canShoot = true
 	self.canSee = false
 	self.shootTimer = Timer:new(self.rof)
 	self.bullet = {
 		list = {},
-		width = 2,
-		height = 2,
+		width = 6,
+		height = 6,
 		speed = 450,
 		minAtkPwr = 4,
 		maxAtkPwr = 12
@@ -65,7 +65,7 @@ function Enemy:updateFov(x, y)
 end
 
 local function collisionFilter(item, other)
-	if other.kind == "bullet" or other.kind == "powerup" then
+	if other.kind == "bullet" or other.kind == "powerup" or other.kind == "exit" then
 		return "cross"
 	else
 		return "slide"
@@ -162,7 +162,7 @@ end
 
 function Enemy:fireBullets(x, y, world)
 	if self.canShoot and self.canSee then
-		local w, h = 4, 4
+		local w, h = self.bullet.width, self.bullet.height
 		local atkPwr = math.random(self.bullet.minAtkPwr, self.bullet.maxAtkPwr)
 		local bullet = Bullet:new(self.x + self.width / 2, self.y + self.height / 2,
 			x, y, w, h, atkPwr, self.bullet.speed)

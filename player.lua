@@ -23,8 +23,8 @@ function Player:initialize(room, world, stats)
 	self.kind = "player"
 	self.bullet = {
 		list = {},
-		width = 4,
-		height = 4,
+		width = 6,
+		height = 6,
 		speed = 425,
 		minAtkPwr = self.minAtkPwr,
 		maxAtkPwr = self.maxAtkPwr
@@ -50,6 +50,7 @@ function Player:initialize(room, world, stats)
 
 	self.shootTimer = Timer:new(self.rof)
 	self.canShoot = true
+	self.canContinue = false
 
 	self.ammunition = self.maxAmmunition
 
@@ -102,7 +103,7 @@ function Player:updateAnimations(dt)
 end
 
 local function collisionFilter(item, other)
-	if other.kind ~= "powerup" then
+	if other.kind ~= "powerup" and other.kind ~= "exit" then
 		return "slide"
 	else
 		return "cross"
@@ -143,7 +144,7 @@ function Player:move(dt, world, drawList)
 
 	local goalX, goalY = self.x + dx * dt, self.y + dy * dt
 	self.x, self.y, cols, len = world:move(self, goalX, goalY, collisionFilter)
-	self:updatePowerupCollision(cols, len, world, drawList)
+	self:updateCollisions(cols, len, world, drawList)
 
 	for i = 1, len do
 		local col = cols[i]
@@ -196,13 +197,13 @@ function Player:updateTimers(dt)
 
 	self.walkTimer:update(dt, function()
 		if self.walking then
-			SoundFX:play("walk", .2)
+			SoundFX:play("walk")
 		end
 	end)
 end
 
 local remove = table.remove
-function Player:updatePowerupCollision(cols, len, world, drawList)
+function Player:updateCollisions(cols, len, world, drawList)
 	for i = 1, len do
 		local col = cols[i]
 		if col.other.kind == "powerup" then
@@ -214,7 +215,7 @@ function Player:updatePowerupCollision(cols, len, world, drawList)
 				self.health = col.other.health(self.health, self.maxHealth)
 			end
 			if name == "speed" then
-				self.speed = col.other.speed(self.speed + 35)
+				self.speed = col.other.speed(self.speed + 20)
 				if self.rof > .1 then
 					self.rof = self.rof - .008
 				end
@@ -233,6 +234,14 @@ function Player:updatePowerupCollision(cols, len, world, drawList)
 
 			break	
 		end
+		if col.other.kind == "exit" then
+			self.canContinue = true
+			print(true, len)
+		end
+	end
+
+	if len <= 0 then
+		self.canContinue = false
 	end
 end
 
@@ -240,6 +249,7 @@ function Player:updateDead()
 	if self.health <= 0 then
 		self.dead = true
 		SoundFX:play("killed")
+		self.health = 0
 	end
 end
 

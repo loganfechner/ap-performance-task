@@ -10,14 +10,14 @@ function Powerup:initialize(name, x, y)
 	elseif name == "ammunition" then
 		self.sprite = love.graphics.newImage("img/powerup-ammunition.png")
 		self.ammunition = function(a, aMax)
-			local ammo = math.random(20, aMax-10)
+			local ammo = math.random(5, 20)
 			local r = a + ammo
 			return r
 		end
 	elseif name == "health" then
 		self.sprite = love.graphics.newImage("img/powerup-health.png")
 		self.health = function(h, hMax)
-			local health = math.random(20, hMax-10)
+			local health = math.random(15, 35)
 			local r = h + health
 			return r
 		end
