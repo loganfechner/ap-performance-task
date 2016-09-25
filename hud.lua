@@ -40,7 +40,7 @@ function Hud:drawDeadStatus(depth)
 	love.graphics.setColor(255,255,255)
 	love.graphics.setFont(displayfont)
 	love.graphics.print(s, (love.graphics.getWidth()/2)-(len*12/2), 275)
-	love.graphics.print("Press 'f' to play a new game", 210, 300)
+	love.graphics.print("Press 'f' to play a new game", love.graphics.getWidth()/2 - 175, 300)
 end
 
 function Hud:drawBackgroundOverlay()

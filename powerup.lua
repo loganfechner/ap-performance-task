@@ -17,7 +17,7 @@ function Powerup:initialize(name, x, y)
 	elseif name == "health" then
 		self.sprite = love.graphics.newImage("img/powerup-health.png")
 		self.health = function(h, hMax)
-			local health = math.random(15, 35)
+			local health = math.random(20, 45)
 			local r = h + health
 			return r
 		end

@@ -208,7 +208,7 @@ function Enemy:draw()
 
 	for i = 1, #self.bullet.list do
 		local bullet = self.bullet.list[i]
-		love.graphics.setColor(255,107, 80)
+		love.graphics.setColor(255,80,175)
 		love.graphics.rectangle("fill", bullet.x1, bullet.y1, bullet.width, bullet.height)
 	end
 end
