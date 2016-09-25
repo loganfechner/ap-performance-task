@@ -8,18 +8,19 @@ local Dungeon = require "dungeon"
 local Hud = require "hud"
 local MST = require "mst"
 local Player = require "player"
+local Shake = require "shake"
 local SoundFX = require "soundfx"
 local tilesize = require "tilesize"
 local Viewport = require "viewport"
 local World = require "world"
 
 local stats = {
-	health = 65,
+	health = 90,
 	speed = 225,
 	ammo = 35,
 	rof = .35,
-	minAtkPwr = 20,
-	maxAtkPwr = 35
+	minAtkPwr = 25,
+	maxAtkPwr = 40
 }
 
 local defaultStats = {
@@ -33,35 +34,29 @@ local defaultStats = {
 
 local depth = 0
 function loadGame()
-	if Player:isDead() then
-		Dungeon:initialize()
-		MST:initialize(Dungeon:getRooms())
-		Dungeon:generateDoors(MST:getTree())
-		Dungeon:generateDrawList()
-		World:initialize(Dungeon:getDrawList("foreground"), Dungeon:getDrawList("background"))
-
-		local room = Dungeon:getRoom(1)
-		Player:initialize(room, World:getWorld(), defaultStats)
-
-		-- 2.4
-		Viewport:initialize(Player.x, Player.y, 1)
-
-		depth = depth + 1
+	if depth > 0 then
+		Dungeon:increaseDifficulty(depth, #World.enemies)
+		Dungeon:initialize(Dungeon.maxEnemies, Dungeon.maxPowerups, Dungeon.maxRooms)
 	else
 		Dungeon:initialize()
-		MST:initialize(Dungeon:getRooms())
-		Dungeon:generateDoors(MST:getTree())
-		Dungeon:generateDrawList()
-		World:initialize(Dungeon:getDrawList("foreground"), Dungeon:getDrawList("background"))
-
-		local room = Dungeon:getRoom(1)
-		Player:initialize(room, World:getWorld(), stats)
-
-		-- 2.4
-		Viewport:initialize(Player.x, Player.y, 1)
-
-		depth = depth + 1
 	end
+	MST:initialize(Dungeon:getRooms())
+	Dungeon:generateDoors(MST:getTree())
+	Dungeon:generateDrawList()
+	World:initialize(Dungeon:getDrawList("foreground"), Dungeon:getDrawList("background"))
+
+	local room = Dungeon:getHarmlessRoom()
+
+	if Player:isDead() then
+		Player:initialize(room, World:getWorld(), defaultStats)
+	else
+		Player:initialize(room, World:getWorld(), stats)
+	end
+	
+	-- 2.4
+	Viewport:initialize(Player.x, Player.y, 1)
+	Shake.reset()
+	depth = depth + 1
 end
 
 function updateStats()
@@ -84,7 +79,7 @@ function love.update(dt)
 	if not Player:isDead() then
 		-- print(collectgarbage("count"))
 		Player:update(dt, World:getWorld(), Dungeon:getDrawList("background"), World.enemies)
-		World:update(dt, Dungeon:getDrawList("background"), Player.x, Player.y, Player)
+		World:update(dt, Dungeon:getDrawList("background"), Player.x + Player.width / 2, Player.y + Player.height / 2, Player)
 		Dungeon:updateDungeonComplete(#World.enemies)
 
 		-- Camera/Viewport
@@ -94,13 +89,14 @@ function love.update(dt)
 		-- end
 		updateStats(dt)
 		Viewport:lockToPlayer(Player.x, Player.y)
-
+		Shake.update(dt)
 		-- print(Player.health, stats.health)
 	end
 end
 
 function love.draw()
 	Viewport:attach()
+		Shake.preDraw()
 		--[[
 		]]
 		Dungeon:drawFloor()
@@ -112,14 +108,15 @@ function love.draw()
 		World:draw()
 		--[[
 		]]
-		
+		Shake.postDraw()
 		-- World:drawListNums(Dungeon:getDrawList())
 	Viewport:detach()
 	Hud:drawBackgroundOverlay()
 	Hud:drawPlayerStats()
+	Hud:drawDepth(depth)
 
 	if not Player:isDead() then
-		Hud:drawLevelStatus(Player.canContinue, depth, 300, 280)
+		Hud:drawLevelStatus(Player.canContinue, depth, love.graphics.getWidth()/2, love.graphics.getHeight()/2)
 	else
 		Hud:drawDeadStatus(depth)
 	end
@@ -127,7 +124,10 @@ end
 
 function love.keypressed(key)
 	if key == "f" and (Player.canContinue or Player:isDead()) then
-		loadGame()	
+		if Player:isDead() then
+			depth = 0
+		end
+		loadGame()
 	end
 	if key == "escape" then
 		love.event.quit()

@@ -106,8 +106,8 @@ function World:drawShadows()
 		local item = items[i]
 		if item.kind == "player" or item.kind == "enemy" then
 			local x = (item.x or item.x1) + item.width / 2
-			local y = (item.y or item.y1) + item.height
-			local rw, rh = item.width, item.height / 2
+			local y = (item.y or item.y1) + item.height - 4
+			local rw, rh = item.width / 1.5, item.height / 2.25
 			love.graphics.setColor(0, 0, 0, 100)
 			love.graphics.ellipse("fill", x, y, rw, rh)
 		end

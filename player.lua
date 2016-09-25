@@ -2,6 +2,7 @@ local inspect = require "inspect"
 local tilesize = require "tilesize"
 local Animation = require "animation"
 local Bullet = require "bullet"
+local Shake = require "shake"
 local SoundFX = require "soundfx"
 local Timer = require "timer"
 local World = require "world"
@@ -25,7 +26,7 @@ function Player:initialize(room, world, stats)
 		list = {},
 		width = 6,
 		height = 6,
-		speed = 425,
+		speed = 550,
 		minAtkPwr = self.minAtkPwr,
 		maxAtkPwr = self.maxAtkPwr
 	}
@@ -84,6 +85,9 @@ function Player:initialize(room, world, stats)
 	}
 	self.currentAnimation = "IdleRight"
 	self.dead = false
+	self.isHurt = false
+	self.rateOfHurt = .3
+	self.hurtTimer = Timer:new(self.rateOfHurt)
 end
 
 function Player:update(dt, world, drawList, enemies)
@@ -200,6 +204,10 @@ function Player:updateTimers(dt)
 			SoundFX:play("walk")
 		end
 	end)
+
+	self.hurtTimer:update(dt, function()
+		self.isHurt = false
+	end, not self.isHurt)
 end
 
 local remove = table.remove
@@ -294,6 +302,7 @@ function Player:fireBullet(key, world)
 
 		if key == "left" or key == "up" or key == "down" or key == "right" then
 			SoundFX:play("shoot")
+			-- Shake.more(.75)
 			self.canShoot = false
 			self.ammunition = self.ammunition - 1
 		end
@@ -302,7 +311,11 @@ end
 
 function Player:damagePlayer(atkPwr)
 	self.health = self.health - atkPwr
+	self.isHurt = true
 	SoundFX:play("hit", 1.0)
+
+	local growth = 10
+	Shake.more(growth)
 end
 
 function Player:getPosition()
@@ -310,7 +323,11 @@ function Player:getPosition()
 end
 
 function Player:draw()
-	love.graphics.setColor(255, 255, 255)
+	if not self.isHurt then
+		love.graphics.setColor(255, 255, 255)
+	else
+		love.graphics.setColor(255, 35, 35)
+	end
 	for _, v in ipairs(self.animations) do
 		if v.name == self.currentAnimation then
 			v.animation:draw(self.x, self.y)

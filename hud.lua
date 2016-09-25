@@ -25,26 +25,50 @@ end
 function Hud:drawLevelStatus(status, depth, x, y)
 	if status then
 		local depth = tostring(depth)
+		local s1 = "LEVEL " .. depth .. " complete"
+		local s2 = "Press 'f' continue to the next level"
+
+		local w1 = string.len(s1) * 12
+		local w2 = string.len(s2) * 12
+
+		local yOffset = 200
+
+		love.graphics.setColor(0,0,0, 200)
+		love.graphics.rectangle("fill", x - w2 / 2 - 35, y - 49 - yOffset, w2 * 1.3, 75)
 
 		love.graphics.setColor(255,255,255)
 		love.graphics.setFont(displayfont)
-		love.graphics.print("LEVEL " .. depth .. " complete", x, y - 25)
-		love.graphics.print("Press 'f' continue to the next level", x - 135, y)
+		love.graphics.print(s1, x - w1 / 2, y - 25 - yOffset)
+		love.graphics.print(s2, x - w2 / 2, y - yOffset)
+
 	end
 end
 
+function Hud:drawDepth(depth)
+	love.graphics.setColor(0,0,0,200)
+	love.graphics.rectangle("fill", 45, 35, 135, 57)
+	love.graphics.setColor(255,255,255)
+	love.graphics.print("LEVEL " .. depth, 65, 60)
+end
+
 function Hud:drawDeadStatus(depth)
+	local yOffset = 200
 	local s = "You have died"
 	local len = string.len(s)
 
+	local x, y = (love.graphics.getWidth()/2)-(len*12/2), love.graphics.getHeight() / 2 - yOffset
+
+	love.graphics.setColor(0,0,0,200)
+	love.graphics.rectangle("fill", x - 22 * 12 / 2, y - 26, 36 * 12, 12 * 7)
+
 	love.graphics.setColor(255,255,255)
 	love.graphics.setFont(displayfont)
-	love.graphics.print(s, (love.graphics.getWidth()/2)-(len*12/2), 275)
-	love.graphics.print("Press 'f' to play a new game", love.graphics.getWidth()/2 - 175, 300)
+	love.graphics.print(s, x, y)
+	love.graphics.print("Press 'f' to play a new game", x - 18 * 12 / 2, y + 26)
 end
 
 function Hud:drawBackgroundOverlay()
-	love.graphics.setColor(0,0,0,150)
+	love.graphics.setColor(0,0,0,200)
 	local w = Player.health * 2 + 288
 	local h = 65
 	local x = love.graphics.getWidth() - w

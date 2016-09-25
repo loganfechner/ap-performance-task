@@ -15,7 +15,7 @@ local function pointInRoom(x, y, room)
 		y > room.y and y < room.y + room.height, room
 end
 
-function Dungeon:initialize()
+function Dungeon:initialize(me, mp, mr)
 	if self.map then
 		self.map = nil
 	end
@@ -26,11 +26,11 @@ function Dungeon:initialize()
 		self.drawList = nil
 	end
 
-	self.maxEnemies = 8
-	self.maxPowerups = 3
+	self.maxEnemies = me or 7
+	self.maxPowerups = mp or 2
 	self.maxAmmoCrates = 2
 
-	self.maxRooms = 6
+	self.maxRooms = mr or 6
 	self.numRooms = 0
 	self.roomWidth = 12
 	self.roomHeight = 7
@@ -52,6 +52,12 @@ function Dungeon:initialize()
 	self:generatePowerups()
 	self:generateEnemies()
 	self:generateExit()
+end
+
+function Dungeon:increaseDifficulty(depth, existingEnemies)
+	self.maxEnemies = math.floor(self.maxEnemies + depth) + math.ceil(existingEnemies / 2)
+	self.maxPowerups = math.floor(self.maxPowerups + depth * .5)
+	self.maxRooms = math.floor(self.maxRooms + depth * 1.1)
 end
 
 function Dungeon:generateRooms()
@@ -115,6 +121,12 @@ function Dungeon:generateDrawList()
 				num = num
 			}
 
+			self.drawList.background[#self.drawList.background+1] = {
+				x = x,
+				y = y,
+				num = -1
+			}
+
 			if num == 3 then
 				for i = 1, #self.rooms do
 					local room = self.rooms[i]
@@ -125,11 +137,6 @@ function Dungeon:generateDrawList()
 				end
 			end
 
-			self.drawList.background[#self.drawList.background+1] = {
-				x = x,
-				y = y,
-				num = -1
-			}
 			self.drawList.foreground[#self.drawList.foreground+1] = list
 		end
 		if num == 1 or num == -1 or num == 6 then
@@ -299,6 +306,35 @@ function Dungeon:getRoomFromPosition(x, y)
 			return room
 		end
 	end
+end
+
+function Dungeon:getHarmlessRoom()
+	local leastEnemies = {}
+	for i = 1, #self.rooms do
+		local room = self.rooms[i]
+		local nEnemies = 0
+		local nExits = 0
+		for y = room.y + 1, room.y + room.height - 1 do
+			for x = room.x + 1, room.x + room.width - 1 do
+				if self.map.data[y][x] == 3 then
+					nEnemies = nEnemies + 1
+				end
+				if self.map.data[y][x] == 6 then
+					nExits = nExits + 1
+				end
+			end
+		end
+		if nEnemies == 0 and nExits == 0 then
+			leastEnemies[#leastEnemies+1] = {room = room, nEnemies = 0}
+		elseif nEnemies > 0 and nExits == 0 then
+			leastEnemies[#leastEnemies+1] = {room = room, nEnemies = nEnemies}
+		end
+	end
+	if #leastEnemies > 0 then
+		local sort = table.sort
+		sort(leastEnemies, function(a, b) return a.nEnemies < b.nEnemies end)
+	end
+	return leastEnemies[1].room
 end
 
 function Dungeon:updateDungeonComplete(n)

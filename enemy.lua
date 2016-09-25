@@ -22,7 +22,7 @@ function Enemy:initialize(x, y, room)
 	self.kind = "enemy"
 	self.maxHealth = 75
 	self.health = self.maxHealth
-	self.rof = math.random(.8, 1.8)
+	self.rof = math.random(.5, 1.2)
 
 	self.room = room
 	self.reachedGoal = true
@@ -41,7 +41,7 @@ function Enemy:initialize(x, y, room)
 		list = {},
 		width = 6,
 		height = 6,
-		speed = 450,
+		speed = 600,
 		minAtkPwr = 4,
 		maxAtkPwr = 12
 	}
@@ -54,6 +54,10 @@ function Enemy:initialize(x, y, room)
 	else
 		self.animation = Animation:new(gnollSprites, 1, 3, .2, self.x, self.y)
 	end
+
+	self.isHurt = false
+	self.rateOfHurt = .3
+	self.hurtTimer = Timer:new(self.rateOfHurt)
 end
 
 function Enemy:update(dt, world, drawList, player)
@@ -128,6 +132,10 @@ function Enemy:updateTimer(dt)
 		self.canShoot = true
 	end)
 
+	self.hurtTimer:update(dt, function()
+		self.isHurt = false
+	end, not self.isHurt)
+
 	self.animation:update(dt)
 end
 
@@ -189,17 +197,23 @@ end
 function Enemy:hurtEnemy(atkPwr)
 	self.health = self.health - atkPwr
 	SoundFX:play("hit")
+	self.isHurt = true
+	self.reachedGoal = true
 end
 
 function Enemy:draw()
 	-- health bar
-	love.graphics.setColor(255,255,255)
+	love.graphics.setColor(0,0,0)
 	love.graphics.rectangle("fill", self.x - 7, self.y - 14, self.maxHealth / 2 + 4, 10)
 	love.graphics.setColor(255,0,0)
 	local w = self.health / 2
 	love.graphics.rectangle("fill", self.x - 5, self.y - 12, w, 6)
 
-	love.graphics.setColor(255,255,255)
+	if not self.isHurt then
+		love.graphics.setColor(255,255,255)
+	else
+		love.graphics.setColor(255,35,35)
+	end
 	if self.dx > 0 then
 		self.animation:draw(self.x, self.y, 1, 1)
 	else
