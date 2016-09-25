@@ -236,7 +236,6 @@ function Player:updateCollisions(cols, len, world, drawList)
 		end
 		if col.other.kind == "exit" then
 			self.canContinue = true
-			print(true, len)
 		end
 	end
 

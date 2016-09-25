@@ -1,9 +1,13 @@
 local class = require "middleclass"
 local tilesize = require "tilesize"
+local Animation = require "animation"
 local Bullet = require "bullet"
 local SoundFX = require "soundfx"
 local Timer = require "timer"
 local Enemy = class("Enemy")
+
+local gnollSprites = love.graphics.newImage("img/gnoll.png")
+local skeletonSprites = love.graphics.newImage("img/skeleton.png")
 
 local function aabb(bullet, x, y, w, h)
 	return bullet.x1 + bullet.width > x and bullet.x1 < x + w and
@@ -18,7 +22,7 @@ function Enemy:initialize(x, y, room)
 	self.kind = "enemy"
 	self.maxHealth = 75
 	self.health = self.maxHealth
-	self.rof = math.random(.5, 1.8)
+	self.rof = math.random(.8, 1.8)
 
 	self.room = room
 	self.reachedGoal = true
@@ -43,6 +47,13 @@ function Enemy:initialize(x, y, room)
 	}
 
 	self.fovDistance = 325
+
+	local enemyType = math.random(0, 50)
+	if enemyType < 20 then
+		self.animation = Animation:new(skeletonSprites, 1, 5, .2, self.x, self.y)
+	else
+		self.animation = Animation:new(gnollSprites, 1, 3, .2, self.x, self.y)
+	end
 end
 
 function Enemy:update(dt, world, drawList, player)
@@ -116,6 +127,8 @@ function Enemy:updateTimer(dt)
 	self.shootTimer:update(dt, function()
 		self.canShoot = true
 	end)
+
+	self.animation:update(dt)
 end
 
 local remove = table.remove
@@ -180,19 +193,22 @@ end
 
 function Enemy:draw()
 	-- health bar
+	love.graphics.setColor(255,255,255)
+	love.graphics.rectangle("fill", self.x - 7, self.y - 14, self.maxHealth / 2 + 4, 10)
 	love.graphics.setColor(255,0,0)
-	local w = 0
-	for i = 1, self.health do
-		w = w + .5 
-	end
-	love.graphics.rectangle("fill", self.x - 10, self.y - 12, w, 6)
+	local w = self.health / 2
+	love.graphics.rectangle("fill", self.x - 5, self.y - 12, w, 6)
 
-	love.graphics.setColor(255,0,255)
-	love.graphics.rectangle("fill", self.x, self.y, self.width, self.height)
+	love.graphics.setColor(255,255,255)
+	if self.dx > 0 then
+		self.animation:draw(self.x, self.y, 1, 1)
+	else
+		self.animation:draw(self.x + self.width, self.y, -1, 1)
+	end
 
 	for i = 1, #self.bullet.list do
 		local bullet = self.bullet.list[i]
-		love.graphics.setColor(0,255,255)
+		love.graphics.setColor(255,107, 80)
 		love.graphics.rectangle("fill", bullet.x1, bullet.y1, bullet.width, bullet.height)
 	end
 end
