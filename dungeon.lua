@@ -55,9 +55,13 @@ function Dungeon:initialize(me, mp, mr)
 end
 
 function Dungeon:increaseDifficulty(depth, existingEnemies)
-	self.maxEnemies = math.floor(self.maxEnemies + depth) + math.ceil(existingEnemies / 2)
+	if self.maxEnemies <= 35 then
+		self.maxEnemies = math.floor(self.maxEnemies + math.floor(depth / 2)) + math.ceil(existingEnemies / 2)
+	end
 	self.maxPowerups = math.floor(self.maxPowerups + depth * .5)
-	self.maxRooms = math.floor(self.maxRooms + depth * 1.1)
+	if self.maxRooms <= 20 then
+		self.maxRooms = math.floor(self.maxRooms + math.floor(depth / 2))
+	end
 end
 
 function Dungeon:generateRooms()

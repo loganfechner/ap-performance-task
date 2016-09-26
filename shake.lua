@@ -2,7 +2,7 @@ local Shake = {}
 
 Shake.growth = 5
 Shake.amplitude = 3
-Shake.frequency = 100
+Shake.frequency = 250
 
 local amount
 local time

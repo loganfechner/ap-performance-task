@@ -41,7 +41,7 @@ function Enemy:initialize(x, y, room)
 		list = {},
 		width = 6,
 		height = 6,
-		speed = 600,
+		speed = 575,
 		minAtkPwr = 4,
 		maxAtkPwr = 12
 	}
