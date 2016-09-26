@@ -26,14 +26,14 @@ function Dungeon:initialize(me, mp, mr)
 		self.drawList = nil
 	end
 
-	self.maxEnemies = me or 7
-	self.maxPowerups = mp or 2
+	self.maxEnemies = me or 2
+	self.maxPowerups = mp or 1
 	self.maxAmmoCrates = 2
 
 	self.maxRooms = mr or 6
 	self.numRooms = 0
-	self.roomWidth = 12
-	self.roomHeight = 7
+	self.roomWidth = 10
+	self.roomHeight = 5
 	self.doorWidth = 1
 
 

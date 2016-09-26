@@ -15,7 +15,7 @@ local Viewport = require "viewport"
 local World = require "world"
 
 local stats = {
-	health = 90,
+	health = 110,
 	speed = 225,
 	ammo = 35,
 	rof = .35,

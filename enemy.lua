@@ -22,7 +22,7 @@ function Enemy:initialize(x, y, room)
 	self.kind = "enemy"
 	self.maxHealth = 75
 	self.health = self.maxHealth
-	self.rof = math.random(.5, 1.2)
+	self.rof = math.random(.5, 1.6)
 
 	self.room = room
 	self.reachedGoal = true

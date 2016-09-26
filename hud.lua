@@ -26,7 +26,7 @@ function Hud:drawLevelStatus(status, depth, x, y)
 	if status then
 		local depth = tostring(depth)
 		local s1 = "LEVEL " .. depth .. " complete"
-		local s2 = "Press 'f' continue to the next level"
+		local s2 = "Press 'f' to continue to the next level"
 
 		local w1 = string.len(s1) * 12
 		local w2 = string.len(s2) * 12
