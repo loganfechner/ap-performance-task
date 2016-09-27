@@ -15,7 +15,7 @@ local function pointInRoom(x, y, room)
 		y > room.y and y < room.y + room.height, room
 end
 
-function Dungeon:initialize(me, mp, mr)
+function Dungeon:initialize(me, mp, mr, ma)
 	if self.map then
 		self.map = nil
 	end
@@ -28,7 +28,7 @@ function Dungeon:initialize(me, mp, mr)
 
 	self.maxEnemies = me or 2
 	self.maxPowerups = mp or 1
-	self.maxAmmoCrates = 2
+	self.maxAmmoCrates = ma or 0
 
 	self.maxRooms = mr or 6
 	self.numRooms = 0
@@ -55,12 +55,17 @@ function Dungeon:initialize(me, mp, mr)
 end
 
 function Dungeon:increaseDifficulty(depth, existingEnemies)
-	if self.maxEnemies <= 35 then
+	if self.maxEnemies <= 30 then
 		self.maxEnemies = math.floor(self.maxEnemies + math.floor(depth / 2)) + math.ceil(existingEnemies / 2)
 	end
-	self.maxPowerups = math.floor(self.maxPowerups + depth * .5)
+	if self.maxPowerups <= 6 then
+		self.maxPowerups = math.floor(self.maxPowerups + depth / 3)
+	end
 	if self.maxRooms <= 20 then
 		self.maxRooms = math.floor(self.maxRooms + math.floor(depth / 2))
+	end
+	if self.maxAmmoCrates <= 5 and depth % 2 == 0 then
+		self.maxAmmoCrates = self.maxAmmoCrates + 1
 	end
 end
 

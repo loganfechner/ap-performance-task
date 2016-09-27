@@ -36,7 +36,7 @@ local depth = 0
 function loadGame()
 	if depth > 0 then
 		Dungeon:increaseDifficulty(depth, #World.enemies)
-		Dungeon:initialize(Dungeon.maxEnemies, Dungeon.maxPowerups, Dungeon.maxRooms)
+		Dungeon:initialize(Dungeon.maxEnemies, Dungeon.maxPowerups, Dungeon.maxRooms, Dungeon.maxAmmoCrates)
 	else
 		Dungeon:initialize()
 	end
@@ -45,7 +45,7 @@ function loadGame()
 	Dungeon:generateDrawList()
 	World:initialize(Dungeon:getDrawList("foreground"), Dungeon:getDrawList("background"))
 
-	local room = Dungeon:getHarmlessRoom()
+	local room = Dungeon:getRoom(1)
 
 	if Player:isDead() then
 		Player:initialize(room, World:getWorld(), defaultStats)
